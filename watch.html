@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stopwatch & Clock</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Arial', sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+    }
+    .clock-container {
+      width: 250px;
+      height: 250px;
+      margin: 0 auto;
+      background: radial-gradient(circle, rgba(0, 255, 255, 0.3), transparent);
+      border: 2px solid #00f7ff;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.7);
+      position: relative;
+    }
+    .time-display {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #00f7ff;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+      font-family: 'Courier New', monospace;
+    }
+    .date-display {
+      font-size: 1.5rem;
+      color: #00f7ff;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+      margin-top: 1rem;
+      font-family: 'Courier New', monospace;
+      background: radial-gradient(circle, rgba(0, 255, 255, 0.3), transparent);
+      border: 2px solid #00f7ff;
+      border-radius: 10px;
+      padding: 0.5rem 1rem;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+      display: inline-block;
+    }
+    .stopwatch-display {
+      font-size: 2rem;
+      color: #00f7ff;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+      margin-bottom: 1.5rem;
+      font-family: 'Courier New', monospace;
+    }
+    .button {
+      padding: 0.75rem 1.5rem;
+      margin: 0.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      transition: background-color 0.3s, transform 0.1s;
+      background: radial-gradient(circle, #00f7ff, #1e40af);
+      color: #fff;
+      border: 1px solid #00f7ff;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+    .button:hover {
+      transform: scale(1.05);
+    }
+    .smartwatch-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: #fff;
+      background: radial-gradient(circle, #00f7ff, transparent);
+      border-radius: 50%;
+      padding: 0.5rem;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+    .smartwatch-icon:hover {
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="smartwatch-icon" id="toggleStopwatch">⏱️</div>
+    <div id="clockView">
+      <div class="clock-container">
+        <div id="clock" class="time-display">00:00:00</div>
+      </div>
+      <div id="date" class="date-display">05/06/2025</div>
+    </div>
+    <div id="stopwatchView" class="hidden">
+      <div id="stopwatch" class="stopwatch-display">00:00:00.000</div>
+      <div class="flex justify-center">
+        <button id="startBtn" class="button">Start</button>
+        <button id="stopBtn" class="button">Stop</button>
+        <button id="resetBtn" class="button">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Clock functionality with IST
+    function updateClock() {
+      const now = new Date();
+      const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+      const istTime = new Date(now.getTime() + istOffset);
+      const hours = String(istTime.getUTCHours()).padStart(2, '0');
+      const minutes = String(istTime.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(istTime.getUTCSeconds()).padStart(2, '0');
+      const day = String(istTime.getUTCDate()).padStart(2, '0');
+      const month = String(istTime.getUTCMonth() + 1).padStart(2, '0');
+      const year = istTime.getUTCFullYear();
+      document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+      document.getElementById('date').textContent = `${day}/${month}/${year}`;
+    }
+
+    // Stopwatch functionality with milliseconds
+    let stopwatchInterval = null;
+    let stopwatchTime = 0;
+    let isRunning = false;
+
+    function updateStopwatch() {
+      const hours = String(Math.floor(stopwatchTime / 3600000)).padStart(2, '0');
+      const minutes = String(Math.floor((stopwatchTime % 3600000) / 60000)).padStart(2, '0');
+      const seconds = String(Math.floor((stopwatchTime大批 % 60000) / 1000)).padStart(2, '0');
+      const milliseconds = String(stopwatchTime % 1000).padStart(3, '0');
+      document.getElementById('stopwatch').textContent = `${hours}:${minutes}:${seconds}.${milliseconds}`;
+    }
+
+    function startStopwatch() {
+      if (!isRunning) {
+        isRunning = true;
+        stopwatchInterval = setInterval(() => {
+          stopwatchTime += 10;
+          updateStopwatch();
+        }, 10);
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+      }
+    }
+
+    function stopStopwatch() {
+      if (isRunning) {
+        clearInterval(stopwatchInterval);
+        isRunning = false;
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = true;
+      }
+    }
+
+    function resetStopwatch() {
+      clearInterval(stopwatchInterval);
+      isRunning = false;
+      stopwatchTime = 0;
+      updateStopwatch();
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('stopBtn').disabled = true;
+    }
+
+    // Toggle between clock and stopwatch
+    function toggleView() {
+      const clockView = document.getElementById('clockView');
+      const stopwatchView = document.getElementById('stopwatchView');
+      if (clockView.classList.contains('hidden')) {
+        clockView.classList.remove('hidden');
+        stopwatchView.classList.add('hidden');
+      } else {
+        clockView.classList.add('hidden');
+        stopwatchView.classList.remove('hidden');
+      }
+    }
+
+    // Event listeners
+    document.getElementById('startBtn').addEventListener('click', startStopwatch);
+    document.getElementById('stopBtn').addEventListener('click', stopStopwatch);
+    document.getElementById('resetBtn').addEventListener('click', resetStopwatch);
+    document.getElementById('toggleStopwatch').addEventListener('click', toggleView);
+
+    // Initialize clock and stopwatch
+    updateClock();
+    setInterval(updateClock, 1000);
+    updateStopwatch();
+    document.getElementById('stopBtn').disabled = true;
+  </script>
+</body>
+</html>
